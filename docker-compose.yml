@@ -1,0 +1,44 @@
+version: '3.6'
+services:
+  api:
+    image: node:10.15.3-alpine
+    container_name: search-api
+    build: .
+    ports:
+      - 7070:7070
+    environment:
+     - NODE_ENV=local
+     - ES_HOST=elasticsearch
+     - NODE_PORT=7070
+     - ELASTIC_URL=http://elasticsearch:9200
+     - ELASTIC_INDEX=docker_library
+     - ELASTIC_TYPE=docker_publications
+    volumes:
+      - .:/app
+    command: npm run start
+    links:
+        - elasticsearch
+    depends_on:
+        - elasticsearch
+    networks: 
+      - esnet
+  elasticsearch:
+    container_name: search-elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    logging:
+      driver: none
+    ports:
+      - 9300:9300
+      - 9200:9200
+    networks: 
+      - esnet
+volumes:
+  esdata:
+networks:
+  esnet:
